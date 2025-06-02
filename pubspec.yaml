@@ -66,6 +66,11 @@ flutter:
     - assets/images/tb.jpg
     - assets/images/tb2.jpg
     - assets/images/tb3.jpg
+    - assets/images/tjkt.jpg
+    - assets/images/animasi.jpg
+    - assets/images/pplg.jpg
+    - assets/images/brf.jpg
+    - assets/images/te.jpg
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

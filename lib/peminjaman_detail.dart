@@ -168,8 +168,7 @@ class _PeminjamanDetailPageState extends State<PeminjamanDetailPage> {
                           pengembalian.imageBukti != null
                               ? Image.network(
                                   'http://localhost:8000/storage/${pengembalian.imageBukti!}',
-                                  width: 150,
-                                  height: 200,
+                                  height: 300,
                                   fit: BoxFit.cover,
                                 )
                               : const Text('Tidak ada bukti gambar'),

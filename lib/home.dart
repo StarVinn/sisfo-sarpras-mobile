@@ -37,7 +37,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    apiService = ApiService(baseUrl: 'http://localhost:8000', accessToken: widget.accessToken);
+    apiService = ApiService(
+        baseUrl: 'http://localhost:8000', accessToken: widget.accessToken);
     _startImageSlider();
     _loadHomeData();
   }
@@ -87,7 +88,8 @@ class _HomePageState extends State<HomePage> {
 
     if (response.statusCode == 200) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginPage(onLoginSuccess: (token) {})),
+        MaterialPageRoute(
+            builder: (context) => LoginPage(onLoginSuccess: (token) {})),
       );
     } else {
       print('Logout failed: ${response.body}');
@@ -131,30 +133,71 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  
-
   Widget _buildHomeContent() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Row(
-          children: [
-            Image.asset("assets/images/logotb.png", width: 100, height: 100),
-            const SizedBox(width: 10),
-            const Text("SISFO SAPRAS", style: TextStyle(fontSize: 18)),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                setState(() {
-                  isMenuOpen = true;
-                });
-              },
-            ),
-          ],
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  "assets/images/logotb.png",
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            "SISFO SAPRAS",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () {
+                            setState(() {
+                              isMenuOpen = true;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Selamat Datang, ${widget.userName ?? 'Pengguna'}",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 10),
-        Text("Selamat Datang, ${widget.userName ?? 'Pengguna'}", style: const TextStyle(fontSize: 16)),
+
         const SizedBox(height: 20),
         _buildInfoBoxes(), // Menampilkan box informasi
         const SizedBox(height: 20),
@@ -189,9 +232,99 @@ class _HomePageState extends State<HomePage> {
             );
           },
         ),
+        const SizedBox(height: 20),
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 25),
+              Text(
+                'About School',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+        Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset(
+                      'assets/images/tjkt.jpg', // Ganti dengan path gambar Anda
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset(
+                      'assets/images/animasi.jpg', // Ganti dengan path gambar Anda
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset(
+                      'assets/images/brf.jpg', // Ganti dengan path gambar Anda
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset(
+                      'assets/images/te.jpg', // Ganti dengan path gambar Anda
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Pusatkan gambar di tengah
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset(
+                      'assets/images/pplg.jpg', // Ganti dengan path gambar Anda
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        )
       ],
     );
   }
+
   Widget _buildInfoCard({
     required String count,
     required String label,
@@ -213,7 +346,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8),
             Text(
               count,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
             ),
             Text(
               label,
@@ -283,12 +419,13 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      backgroundColor: Colors.grey[400],
+      backgroundColor: Colors.indigoAccent,
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Barang'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Pinjam'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart), label: 'Pinjam'),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -297,7 +434,8 @@ class _HomePageState extends State<HomePage> {
         child: Stack(
           children: [
             widgetOptions.elementAt(_selectedIndex),
-            if (isMenuOpen) Positioned(top: 60, right: 10, child: buildMenuOverlay()),
+            if (isMenuOpen)
+              Positioned(top: 60, right: 10, child: buildMenuOverlay()),
           ],
         ),
       ),

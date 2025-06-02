@@ -15,11 +15,26 @@ class PeminjamanPage extends StatefulWidget {
 
 class _PeminjamanPageState extends State<PeminjamanPage> {
   late Future<List<Peminjaman>> _futurePeminjaman;
+  List<Peminjaman> _allPeminjaman = []; // simpan semua data asli
+  List<Peminjaman> _filteredPeminjaman = [];
+
+  String _filterNama = '';
+  String _filterStatus = 'Semua';
+  DateTime? _filterTanggal;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
     _futurePeminjaman = widget.apiService.fetchRiwayatPeminjaman();
+    final data = await _futurePeminjaman;
+    setState(() {
+      _allPeminjaman = data;
+      _filterData();
+    });
   }
 
   String formatTanggal(dynamic tanggal) {
@@ -31,10 +46,52 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
     }
   }
 
-  Future<void> _refreshData() async {
+  // Filter tanpa parameter, filter berdasarkan state filter saat ini
+  void _filterData() {
     setState(() {
-      _futurePeminjaman = widget.apiService.fetchRiwayatPeminjaman();
+      _filteredPeminjaman = _allPeminjaman.where((item) {
+        final matchNama = _filterNama.isEmpty ||
+            (item.user?.name ?? '')
+                .toLowerCase()
+                .contains(_filterNama.toLowerCase());
+
+        final matchStatus = _filterStatus == 'Semua' ||
+            item.status.toLowerCase() == _filterStatus.toLowerCase();
+
+        final matchTanggal = _filterTanggal == null ||
+            (DateTime.parse(item.tanggalPeminjaman.toString()).year ==
+                    _filterTanggal!.year &&
+                DateTime.parse(item.tanggalPeminjaman.toString()).month ==
+                    _filterTanggal!.month &&
+                DateTime.parse(item.tanggalPeminjaman.toString()).day ==
+                    _filterTanggal!.day);
+
+        return matchNama && matchStatus && matchTanggal;
+      }).toList();
     });
+  }
+
+  Future<void> _refreshData() async {
+    final data = await widget.apiService.fetchRiwayatPeminjaman();
+    setState(() {
+      _allPeminjaman = data;
+      _filterData();
+    });
+  }
+
+  Future<void> _selectTanggal(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _filterTanggal ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        _filterTanggal = picked;
+      });
+      _filterData();
+    }
   }
 
   @override
@@ -44,6 +101,7 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
       body: SafeArea(
         child: Column(
           children: [
+            // Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -58,187 +116,187 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
                 ),
               ),
             ),
+
+            // Filter Section
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      // Filter Nama
+                      Expanded(
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            labelText: 'Filter Nama ',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) {
+                            _filterNama = value;
+                            _filterData();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Filter Status
+                      DropdownButton<String>(
+                        value: _filterStatus,
+                        items: <String>[
+                          'Semua',
+                          'Dipinjam',
+                          'Dikembalikan',
+                          'Waiting Peminjaman',
+                          'Waiting Pengembalian',
+                          'Pengembalian Ditolak',
+                          'Peminjaman Ditolak'
+                        ].map((status) {
+                          return DropdownMenuItem<String>(
+                            value: status,
+                            child: Text(status),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            _filterStatus = value;
+                            _filterData();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Filter Tanggal
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _filterTanggal != null
+                              ? 'Tanggal: ${DateFormat('dd/MM/yyyy').format(_filterTanggal!)}'
+                              : 'Pilih Tanggal',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _selectTanggal(context),
+                        child: const Text('Pilih Tanggal'),
+                      ),
+                      if (_filterTanggal != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            setState(() {
+                              _filterTanggal = null;
+                              _filterData();
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Data List
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refreshData,
-                child: FutureBuilder<List<Peminjaman>>(
-                  future: _futurePeminjaman,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(
-                          child: Text('Terjadi kesalahan: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(
-                          child: Text('Belum ada data peminjaman'));
-                    }
-
-                    final peminjamanList = snapshot.data!;
-                    int? _hoveredIndex;
-
-                    return Column(
-                      children: [
-                        Expanded(
-                          child: ListView.builder(
+                child: _allPeminjaman.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : _filteredPeminjaman.isEmpty
+                        ? const Center(
+                            child: Text('Tidak ada data sesuai filter'))
+                        : ListView.builder(
                             padding: const EdgeInsets.all(12),
-                            itemCount: peminjamanList.length,
+                            itemCount: _filteredPeminjaman.length,
                             itemBuilder: (context, index) {
-                              final item = peminjamanList[index];
-                              final isDipinjam =
-                                  item.status.toLowerCase() == 'dipinjam';
-                              final isdikembalikan =
-                                  item.status.toLowerCase() == 'dikembalikan';
-                              final ispengembalianditolak =
-                                  item.status.toLowerCase() ==
-                                      'pengembalian ditolak';
-                              final ispeminjamanditolak =
-                                  item.status.toLowerCase() ==
-                                      'peminjaman ditolak';
-                              final iswaitingpeminjaman =
-                                  item.status.toLowerCase() ==
-                                      'waiting peminjaman';
-                              final iswaitingpengembalian =
-                                  item.status.toLowerCase() ==
-                                      'waiting pengembalian';
-                              final warnaKartu =
-                                  ispengembalianditolak || ispeminjamanditolak
-                                      ? Colors.red.shade100
-                                      : (isDipinjam || isdikembalikan
-                                          ? Colors.green.shade100
-                                          : (iswaitingpengembalian ||
-                                                  iswaitingpeminjaman
-                                              ? Colors.yellow.shade300
-                                              : Colors.white));
+                              final item = _filteredPeminjaman[index];
+                              final warnaKartu = (() {
+                                final status = item.status.toLowerCase();
+                                if (status == 'waiting peminjaman' ||
+                                    status == 'waiting pengembalian') {
+                                  return Colors.yellow.shade100;
+                                } else if (status == 'dipinjam' ||
+                                    status == 'dikembalikan') {
+                                  return Colors.green.shade100;
+                                } else if (status == 'peminjaman ditolak' ||
+                                    status == 'pengembalian ditolak') {
+                                  return Colors.red.shade100;
+                                }
+                                // Default warna kalau status lain
+                                return Colors.grey.shade200;
+                              })();
 
-                              return MouseRegion(
-                                onEnter: (_) {
-                                  setState(() {
-                                    _hoveredIndex = index;
-                                  });
-                                },
-                                onExit: (_) {
-                                  setState(() {
-                                    _hoveredIndex = null;
-                                  });
-                                },
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    if (isDipinjam) {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => PengembalianFormPage(
-                                            peminjamanId: item.id,
-                                            accessToken:
-                                                widget.apiService.accessToken,
-                                            tanggalPeminjaman: formatTanggal(
-                                                item.tanggalPeminjaman),
-                                          ),
+
+                              return GestureDetector(
+                                onTap: () async {
+                                  if (item.status.toLowerCase() == 'dipinjam') {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PengembalianFormPage(
+                                          peminjamanId: item.id,
+                                          accessToken:
+                                              widget.apiService.accessToken,
+                                          tanggalPeminjaman: formatTanggal(
+                                              item.tanggalPeminjaman),
                                         ),
-                                      );
-                                      if (result == true) {
-                                        _refreshData();
-                                      }
-                                    } else if (ispengembalianditolak ||
-                                        item.status.toLowerCase() ==
-                                            'dikembalikan' ||
-                                        ispeminjamanditolak) {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => PeminjamanDetailPage(
-                                            peminjaman: item,
-                                            accessToken:
-                                                widget.apiService.accessToken,
-                                          ),
-                                        ),
-                                      );
-                                      if (result == true) {
-                                        _refreshData();
-                                      }
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      _refreshData();
                                     }
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: warnaKartu,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 3),
-                                        )
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Icon(Icons.local_offer_outlined,
-                                            color: Colors.grey),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'Nama Peminjam: ${item.user?.name ?? 'Unknown'}',
-                                                style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                              Text(
-                                                  'Kelas: ${item.kelasPeminjam}'),
-                                              Text('Status: ${item.status}'),
-                                              Text(
-                                                  'Barang: ${item.barang?.nama ?? 'Unknown'}'),
-                                              Text(
-                                                  'Alasan: ${item.alasanPeminjam}'),
-                                            ],
-                                          ),
+                                  } else {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PeminjamanDetailPage(
+                                          peminjaman: item,
+                                          accessToken:
+                                              widget.apiService.accessToken,
                                         ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              formatTanggal(
-                                                  item.tanggalPeminjaman),
-                                              style: const TextStyle(
-                                                  fontSize: 13,
-                                                  color: Colors.grey),
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      _refreshData();
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: warnaKartu,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Nama: ${item.user?.name ?? 'Unknown'}',
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text('Status: ${item.status}'),
+                                      Text('Barang: ${item.barang?.nama ?? 'Tidak ada Nama Barang'}'),
+                                      Text(
+                                          'Tanggal: ${formatTanggal(item.tanggalPeminjaman)}'),
+                                    ],
                                   ),
                                 ),
                               );
                             },
                           ),
-                        ),
-                        Container(
-                          height: 30,
-                          alignment: Alignment.center,
-                          child: _hoveredIndex != null
-                              ? Text(
-                                  'Hovering: Nama Peminjam: ${peminjamanList[_hoveredIndex!].user?.name ?? 'Unknown'}',
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold),
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
-                    );
-                  },
-                ),
               ),
             ),
           ],
