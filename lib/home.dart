@@ -387,11 +387,6 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
-            const Divider(),
-            const Text("Tentang Kami"),
-            const Divider(),
-            const Text("Hubungi Kami"),
-            const Divider(),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,

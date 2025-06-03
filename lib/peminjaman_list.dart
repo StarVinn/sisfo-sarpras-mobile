@@ -203,7 +203,7 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
               child: RefreshIndicator(
                 onRefresh: _refreshData,
                 child: _allPeminjaman.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: Text('Tidak ada Riwayat Peminjaman'))
                     : _filteredPeminjaman.isEmpty
                         ? const Center(
                             child: Text('Tidak ada data sesuai filter'))
