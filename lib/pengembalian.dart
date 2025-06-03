@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -81,7 +83,6 @@ class _PengembalianFormPageState extends State<PengembalianFormPage> {
     );
 
     try {
-      File? fileToSend;
 
       // Untuk Web, simpan bytes sebagai file sementara
       if (kIsWeb && _imageBytes != null && _fileName != null) {
