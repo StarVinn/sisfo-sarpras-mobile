@@ -23,8 +23,9 @@ class _BarangListWidgetState extends State<BarangListWidget> {
   void initState() {
     super.initState();
     apiService = ApiService(
-        baseUrl: 'http://localhost:8000',
-        accessToken: widget.accessToken); // gunakan 10.0.2.2 untuk emulator
+      baseUrl: 'http://localhost:8000', // gunakan 10.0.2.2 untuk emulator
+      accessToken: widget.accessToken,
+    );
     fetchBarang();
   }
 
@@ -36,7 +37,7 @@ class _BarangListWidgetState extends State<BarangListWidget> {
       List<Barang> fetchedBarang = await apiService.fetchBarang();
       setState(() {
         barangList = fetchedBarang;
-        filteredBarangList = fetchedBarang; // awalnya semua tampil
+        filteredBarangList = fetchedBarang;
         _isLoading = false;
       });
     } catch (e) {
@@ -74,9 +75,10 @@ class _BarangListWidgetState extends State<BarangListWidget> {
                 child: Text(
                   'Barang',
                   style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -84,7 +86,7 @@ class _BarangListWidgetState extends State<BarangListWidget> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4), // transparan
+                color: Colors.white.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.indigoAccent),
               ),
@@ -106,58 +108,78 @@ class _BarangListWidgetState extends State<BarangListWidget> {
                 : Expanded(
                     child: RefreshIndicator(
                       onRefresh: _refreshBarang,
-                      child: ListView(
-                        children: filteredBarangList
-                            .map((barang) => Card(
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
-                                  child: ListTile(
-                                    leading: barang.image != null &&
-                                            barang.image!.isNotEmpty
-                                        ? Image.network(
-                                            barang.image!,
-                                            width: 50,
-                                            height: 50,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return const Icon(
-                                                  Icons.broken_image);
-                                            },
-                                          )
-                                        : const Icon(Icons.image_not_supported),
-                                    title: Text(barang.nama),
-                                    subtitle: Text(
-                                        "Kategori: ${barang.categoryName ?? '-'}"),
-                                    trailing: Text("Stock: ${barang.quantity}"),
-                                    onTap: () {
-                                      if (barang.quantity == 0) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content:
-                                                Text('Barang tidak tersedia'),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BarangDetailPage(
-                                            accessToken: widget.accessToken,
-                                            barang: barang,
-                                          ),
-                                        ),
-                                      );
-                                    },
+                      child: filteredBarangList.isEmpty
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 40),
+                                child: Text(
+                                  'Tidak ada barang',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey,
                                   ),
-                                ))
-                            .toList(),
-                      ),
+                                ),
+                              ),
+                            )
+                          : ListView(
+                              children: filteredBarangList
+                                  .map((barang) => Card(
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 8),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: ListTile(
+                                          leading: barang.image != null &&
+                                                  barang.image!.isNotEmpty
+                                              ? Image.network(
+                                                  barang.image!,
+                                                  width: 50,
+                                                  height: 50,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return const Icon(
+                                                        Icons.broken_image);
+                                                  },
+                                                )
+                                              : const Icon(
+                                                  Icons.image_not_supported),
+                                          title: Text(barang.nama),
+                                          subtitle: Text(
+                                              "Kategori: ${barang.categoryName ?? '-'}"),
+                                          trailing:
+                                              Text("Stock: ${barang.quantity}"),
+                                          onTap: () {
+                                            if (barang.quantity == 0) {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Barang tidak tersedia'),
+                                                  duration:
+                                                      Duration(seconds: 2),
+                                                ),
+                                              );
+                                              return;
+                                            }
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    BarangDetailPage(
+                                                  accessToken:
+                                                      widget.accessToken,
+                                                  barang: barang,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ))
+                                  .toList(),
+                            ),
                     ),
                   ),
           ],

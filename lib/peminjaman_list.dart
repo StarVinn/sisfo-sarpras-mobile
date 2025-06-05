@@ -124,44 +124,32 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
                 children: [
                   Row(
                     children: [
-                      // Filter Nama
+                      // Filter Status
                       Expanded(
-                        child: TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'Filter Nama ',
-                            border: OutlineInputBorder(),
-                          ),
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _filterStatus,
+                          items: <String>[
+                            'Semua',
+                            'Dipinjam',
+                            'Dikembalikan',
+                            'Waiting Peminjaman',
+                            'Waiting Pengembalian',
+                            'Pengembalian Ditolak',
+                            'Peminjaman Ditolak'
+                          ].map((status) {
+                            return DropdownMenuItem<String>(
+                              value: status,
+                              child: Text(status),
+                            );
+                          }).toList(),
                           onChanged: (value) {
-                            _filterNama = value;
-                            _filterData();
+                            if (value != null) {
+                              _filterStatus = value;
+                              _filterData();
+                            }
                           },
                         ),
-                      ),
-                      const SizedBox(width: 10),
-
-                      // Filter Status
-                      DropdownButton<String>(
-                        value: _filterStatus,
-                        items: <String>[
-                          'Semua',
-                          'Dipinjam',
-                          'Dikembalikan',
-                          'Waiting Peminjaman',
-                          'Waiting Pengembalian',
-                          'Pengembalian Ditolak',
-                          'Peminjaman Ditolak'
-                        ].map((status) {
-                          return DropdownMenuItem<String>(
-                            value: status,
-                            child: Text(status),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            _filterStatus = value;
-                            _filterData();
-                          }
-                        },
                       ),
                     ],
                   ),
