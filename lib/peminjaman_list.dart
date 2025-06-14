@@ -279,6 +279,25 @@ class _PeminjamanPageState extends State<PeminjamanPage> {
                                       Text('Barang: ${item.barang?.nama ?? 'Tidak ada Nama Barang'}'),
                                       Text(
                                           'Tanggal: ${formatTanggal(item.tanggalPeminjaman)}'),
+                                      if (item.status == 'Dipinjam')
+                                        const Text('Klik Untuk Mengembalikan', 
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold
+                                          ),
+                                        ),
+                                      if (item.status == 'pengembalian ditolak' || item.status == 'Dikembalikan')
+                                      const Text(
+                                          'Klik Untuk Melihat Detail',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      if (item.status == 'waiting pengembalian' || item.status == 'waiting peminjaman')
+                                      const Text(
+                                          'Silahkan Tunggu Dan Refresh',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      
                                     ],
                                   ),
                                 ),
